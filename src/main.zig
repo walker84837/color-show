@@ -22,14 +22,17 @@ pub fn main() !void {
     defer arg_iter.deinit();
 
     _ = arg_iter.next(); // Skip the program name
-    const writer = std.io.getStdOut().writer();
+    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    const stdout = &stdout_writer.interface;
+
     const height = try line_height();
 
     var count: u8 = 0;
     while (arg_iter.next()) |arg| {
         count += 1;
         if (count > 1) {
-            try writer.print("\n", .{});
+            try stdout.print("\n", .{});
         }
 
         std.debug.assert(arg.len == 6);
@@ -48,7 +51,7 @@ pub fn main() !void {
         const color_code = try entry.color.show(allocator);
         defer allocator.free(color_code);
 
-        try writer.print("{s} {s}", .{ data, color_code });
+        try stdout.print("{s} {s}", .{ data, color_code });
     }
 
     std.debug.print("\n", .{});
