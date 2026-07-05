@@ -12,18 +12,14 @@ fn line_height() !usize {
     return sz.ws_ypixel / sz.ws_row;
 }
 
-pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const allocator = init.arena.allocator();
 
-    const allocator = arena.allocator();
-
-    var arg_iter = try std.process.argsWithAllocator(allocator);
-    defer arg_iter.deinit();
-
+    var arg_iter = std.process.Args.Iterator.init(init.minimal.args);
     _ = arg_iter.next(); // Skip the program name
     var stdout_buffer: [1024]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var stdout_writer = std.Io.File.stdout().writer(io, &stdout_buffer);
     const stdout = &stdout_writer.interface;
 
     const height = try line_height();
@@ -55,7 +51,7 @@ pub fn main() !void {
     }
 
     std.debug.print("\n", .{});
-    std.log.debug("alloc={}", .{arena.queryCapacity()});
+    std.log.debug("alloc={}", .{init.arena.queryCapacity()});
 }
 
 fn escape_fence(alloc: std.mem.Allocator, data: []const u8) ![]const u8 {

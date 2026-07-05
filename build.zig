@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
     });
 
     if (target.result.os.tag == .linux) {
-        exe.linkLibC();
+        main_mod.link_libc = true;
     }
 
     b.installArtifact(exe);
